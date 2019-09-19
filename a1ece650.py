@@ -1,4 +1,5 @@
 import sys
+import re
 
 # YOUR CODE GOES HERE
 
@@ -14,6 +15,11 @@ def RemoveStreet(street_name):
 def OutputGraph():
     pass
 
+def ParseInput(line):
+    input_parser = re.compile("[a-z]")
+
+    # placeholder return statement
+    return "a", "args"
 
 def main():
     ### YOUR MAIN CODE GOES HERE
@@ -31,11 +37,18 @@ def main():
     
     while True:
         line = sys.stdin.readline().strip()
+
         if line == '':
             break
-        print 'read a line:', line
 
-    print 'Finished reading input'
+        command, args = ParseInput(line)
+
+        try:
+            menu_options[command](args)
+        except:
+            pass
+        
+    print '[*]Exiting graph generator'
     # return exit code 0 on successful termination
     sys.exit(0)
 
