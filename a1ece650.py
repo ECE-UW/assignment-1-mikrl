@@ -26,19 +26,19 @@ def ParseInput(line):
     command_parser = re.compile(r"(^[ ]*(a|c|g|r)[ ]*)")
     arg_parser = re.compile(r"([ ]+\"[a-z]+\"[ ]+(\([ ]*[0-9]+[ ]*[\,][ ]*[0-9]+[ ]*\)[ ]*)+)|([ ]+\"[a-z]+\"$)")
 
+    parsed_output = {'output':None, 'error':0}
     
     if command_parser.search(line) is not None: # If there is a match, save into command variable
         command = command_parser.match(line).group()
+
+        command_sequence = [command, "weber", [(1,2), (3,4)]] #placeholder command sequence
+        parsed_output['output'] = command_sequence    #set command sequence as output
+        
     else:
-        return None, 41 # Else return nothing for the command and the error code
+        parsed_output['error'] = 41 # If no match, set error code
     
-    assert(command in ['a', 'c', 'r', 'g'])
-
-    
-    command_sequence = [command, "weber", [(1,2), (3,4)]]
-
-    #return the command sequence [command, street, [vertices] ] and a success code
-    return command_sequence, 0
+    #return the command sequence (set or not) and a success code
+    return parsed_output
 
 def main():
     ### YOUR MAIN CODE GOES HERE
@@ -71,7 +71,9 @@ def main():
             break
 
         # Else parse the input line
-        command_sequence, return_value = ParseInput(line)
+        parsed_line=ParseInput(line)
+        command_sequence = parsed_line['output']
+        return_value = parsed_line['error']
 
         # Figure out if an error occurred within the function
         # If so, skip back to input
