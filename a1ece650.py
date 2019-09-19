@@ -9,17 +9,27 @@ def AddStreet(street_name, vertices):
 def ChangeStreet(street_name, vertices):
     pass
 
-def RemoveStreet(street_name):
+def RemoveStreet(street_name, *extra):
     pass
 
-def OutputGraph():
+def OutputGraph(*extra):
     pass
 
 def ParseInput(line):
-    input_parser = re.compile("[a-z]")
+    """ Generate the regexes to parse our input 
+    command_parser parses the input command and ensures it is in (a|c|g|r)
 
+    arg_parser parses the arguments and ensures it conforms to the guidelines given in the FAQ
+    ie whitespace between each street arg and vertices, whitespace in vertices args don't matter
+    note: this also matches the case where only one arg is passed in order to capture the case r
+    """
+    command_parser = re.compile("(^[ ]*(a|c|g|r)[ ]*)")
+    arg_parser = re.compile("([ ]+\"[a-z]+\"[ ]+(\([ ]*[0-9]+[ ]*[\,][ ]*[0-9]+[ ]*\)[ ]*)+)|([ ]+\"[a-z]+\"$)")
+
+
+    
     # placeholder return statement
-    return "a", "args"
+    return "a", "args", "more_args"
 
 def main():
     ### YOUR MAIN CODE GOES HERE
@@ -41,10 +51,10 @@ def main():
         if line == '':
             break
 
-        command, args = ParseInput(line)
+        command, street_name, vertices = ParseInput(line)
 
         try:
-            menu_options[command](args)
+            menu_options[command](street_name, vertices)
         except:
             pass
         
