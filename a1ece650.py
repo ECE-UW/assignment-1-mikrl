@@ -2,17 +2,24 @@ import sys
 import re
 import pdb #debug
 
-def AddStreet(street_name, vertices):
-    print "Add street function"
 
-def ChangeStreet(street_name, vertices):
-    print "Change street function"
+class Graph:
 
-def RemoveStreet(street_name):
-    print "Remove street function"
+    vertices = {}
+    edges = {}
+    intersections = {}
+    
+    def AddStreet(self, street_name, vertices):
+        print "Add street function"
 
-def OutputGraph():
-    print "Output graph function"
+    def ChangeStreet(self, street_name, vertices):
+        print "Change street function"
+
+    def RemoveStreet(self, street_name):
+        print "Remove street function"
+
+    def OutputGraph(self):
+        print "Output graph function"
 
 def errorHandler(command, arguments, street_name, vertices):
 
@@ -43,6 +50,9 @@ def errorHandler(command, arguments, street_name, vertices):
 
 def ParseInput(line):
     """ Generate the regexes to parse our input 
+
+    added parsers for each function to enforce input restrictions
+
     command_parser parses the input command and ensures it is in (a|c|g|r)
 
     arg_parser parses the arguments and ensures it conforms to the guidelines given in the FAQ
@@ -117,15 +127,16 @@ def main():
     ### make sure to remove all spurious print statements as required
     ### by the assignment
 
-
+    #Graph object
+    StreetGraph = Graph()
+    
     # Dict to hold references to functions
-    menu_options = {'a': AddStreet,
-                    'c': ChangeStreet,
-                    'r': RemoveStreet,
-                    'g': OutputGraph}
+    menu_options = {'a': StreetGraph.AddStreet,
+                    'c': StreetGraph.ChangeStreet,
+                    'r': StreetGraph.RemoveStreet,
+                    'g': StreetGraph.OutputGraph}
     
     # Dict to hold possible errors
-    global error_codes
     error_codes = {01:"Error: Ruh roh!",
                    02:"Error: Invalid command",
                    500:"Error: Exception raised",
@@ -138,13 +149,12 @@ def main():
                    532:"Error: Unnecessary vertices for (r). (r) \"<street name>\"",
                    540:"Error: Too many arguments for g. (g)"}
                    
-
     # wait for input
     while True:
 
         # Read a line of input
         line = sys.stdin.readline().strip()
-
+        print(line)
         # If line is blank, exit program
         if line == '':
             break
