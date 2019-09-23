@@ -5,16 +5,16 @@ import pdb #debug
 
 class Graph:
 
-    vertices = {}
-    edges = {}
-    intersections = {}
+    streets_ = {} 
+    edges_ = {}
+    vertices_ = {}
     
     def AddStreet(self, street_name, vertices):
         try:
-            if street_name in self.vertices.keys(): # if street exists, do not add
+            if street_name in self.streets_.keys(): # if street exists, do not add
                 sys.stderr.write(error_codes[610]+'\n')
             else:
-                self.vertices.update({street_name:vertices})
+                self.streets_.update({street_name:vertices})
 
             print "Add street function"
         except:
@@ -23,8 +23,8 @@ class Graph:
             
     def ChangeStreet(self, street_name, vertices):
         try:
-            if street_name in self.vertices.keys(): # check if street actually exists
-                pass
+            if street_name in self.streets_.keys(): # check if street actually exists
+                self.streets_.update({street_name:vertices})
             else:
                 sys.stderr.write(error_codes[620]+'\n')
 
@@ -35,17 +35,36 @@ class Graph:
             
     def RemoveStreet(self, street_name):
         try:
-            print "Remove street function"
-            sys.stderr.write(error_codes[630]+'\n')
+            if street_name in self.streets_.keys():
+                self.streets_.pop(street_name, None)
+            else:
+                sys.stderr.write(error_codes[630]+'\n')
         except:
             sys.stderr.write(error_codes[800]+'\n')
             
-    def BuildIntersections(self):
-        pass
+    def BuildGraph(self):
+        vertices = {}
+        edges = {}
+
+        """
+        Code goes here
+        """
+        
+        # Clear old graph
+        self.vertices_.clear()
+        self.edges_.clear()
+
+        # Build new
+        self.vertices_ = vertices
+        self.edges_ = edges
         
     def OutputGraph(self):
-        print "Output graph function"
-
+        
+        self.BuildGraph()
+        print("[*] Temp Output \n")
+        output_string = "V = {\n\t"
+        
+    
 
 def errorHandler(command, arguments, street_name, vertices):
 
@@ -187,7 +206,7 @@ def main():
 
         # Read a line of input
         line = sys.stdin.readline().strip()
-        print(line)
+        
         # If line is blank, exit program
         if line == '':
             break
