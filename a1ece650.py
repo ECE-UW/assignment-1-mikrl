@@ -10,16 +10,42 @@ class Graph:
     intersections = {}
     
     def AddStreet(self, street_name, vertices):
-        print "Add street function"
+        try:
+            if street_name in self.vertices.keys(): # if street exists, do not add
+                sys.stderr.write(error_codes[610]+'\n')
+            else:
+                self.vertices.update({street_name:vertices})
 
+            print "Add street function"
+        except:
+            sys.stderr.write(error_codes[600]+'/n')
+
+            
     def ChangeStreet(self, street_name, vertices):
-        print "Change street function"
+        try:
+            if street_name in self.vertices.keys(): # check if street actually exists
+                pass
+            else:
+                sys.stderr.write(error_codes[620]+'\n')
 
+            print "Change street function"
+            
+        except:
+            sys.stderr.write(error_codes[700]+'\n')
+            
     def RemoveStreet(self, street_name):
-        print "Remove street function"
-
+        try:
+            print "Remove street function"
+            sys.stderr.write(error_codes[630]+'\n')
+        except:
+            sys.stderr.write(error_codes[800]+'\n')
+            
+    def BuildIntersections(self):
+        pass
+        
     def OutputGraph(self):
         print "Output graph function"
+
 
 def errorHandler(command, arguments, street_name, vertices):
 
@@ -64,7 +90,7 @@ def ParseInput(line):
     vertex_parser parses the vertices
     """
 
-    add_change_parser = re.compile(r"(([ ]*(a|c)[ ]+)(\"[a-z A-Z]+\"[ ]+)((\([ ]*[0-9]+[ ]*\,[ ]*[0-9]+[ ]*\)[ ]*)+))")
+    add_change_parser = re.compile(r"(([ ]*(a|c)[ ]+)(\"[a-z A-Z]+\"[ ]+)((\([ ]*[0-9]+[ ]*\,[ ]*[0-9]+[ ]*\)[ ]*)+))$")
     remove_parser = re.compile(r"^([ ]*r)([ ]+\"[a-z A-Z]+\")$")
     graph_parser = re.compile(r"^[ ]*g[ ]*$")
     
@@ -96,7 +122,7 @@ def ParseInput(line):
     else:
         try:
             if command_parser.match(line) is not None:
-                #pdb.set_trace()
+                pdb.set_trace()
                 command = command_parser.match(line).group().strip()
                 arguments = arg_parser.findall(line)
                 street_name = re.findall(r'\"[a-z A-Z]+\"', ''.join(arguments)) #split args into street name
@@ -137,6 +163,7 @@ def main():
                     'g': StreetGraph.OutputGraph}
     
     # Dict to hold possible errors
+    global error_codes
     error_codes = {01:"Error: Ruh roh!",
                    02:"Error: Invalid command",
                    500:"Error: Exception raised",
@@ -147,7 +174,13 @@ def main():
                    523:"Error: Please enter vertices for (a|c)",
                    531:"Error: No street name for (r). (r) \"<street name>\"",
                    532:"Error: Unnecessary vertices for (r). (r) \"<street name>\"",
-                   540:"Error: Too many arguments for g. (g)"}
+                   540:"Error: Too many arguments for g. (g)",
+                   600:"Error: Uncaught exception in Graph.AddStreet",
+                   610:"Error: Street already in vertices. Use c to change or r to remove",
+                   620:"Error: Street not in vertices. Please use a to add a street",
+                   630:"Error: Street not in vertices. Cannot remove",
+                   700:"Error: Uncaught exception in Graph.ChangeStreet",
+                   800:"Error: Uncaught exception in Graph.RemoveStreet"}
                    
     # wait for input
     while True:
