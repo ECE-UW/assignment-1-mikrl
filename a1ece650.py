@@ -168,7 +168,7 @@ def ParseInput(line):
     arg_parser = re.compile(
         r"([ ]+[\"a-zA-Z]+[ ]*[a-zA-Z]*\"[ ]+(\([ ]*[0-9]+[ ]*[\,][ ]*[0-9]+[ ]*\)[ ]*)+)|([ ]+\"[a-zA-Z]+\"$)")
     street_name_parser = re.compile(r"([ ]*\")([a-z A-Z]+)(\"[ ]*)")
-    vertex_parser = re.compile(r"\([ ]*[0-9]+[ ]*\,[ ]*[0-9]+[ ]*\)")
+    vertex_parser = re.compile(r"\([ ]*[\-]*[0-9]+[ ]*\,[ ]*[\-]*[0-9]+[ ]*\)")
 
     # initialize return dict with empty command and OK code
     parsed_output = {'output': [[], [], []], 'error': 0}
