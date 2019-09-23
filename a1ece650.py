@@ -8,6 +8,7 @@ class Graph:
     streets_ = {}
     edges_ = {}
     vertices_ = {}
+    intersections_ = {}
 
     def AddStreet(self, street_name, vertices):
         try:
@@ -38,23 +39,68 @@ class Graph:
         except:
             sys.stderr.write(error_codes[800]+'\n')
 
+    def DetermineIntersections(self):
+        # pdb.set_trace()
+        all_street_segments = []
+        intersections = []
+
+        def Determinant(v0, v1):
+            return(v0[0]*v1[1]-v0[1]*v1[0])
+
+        for street in self.streets_.keys():
+            street_segments = []
+            coordinates = self.streets_[street]
+            for idx in range(2, len(coordinates)):
+                street_segments.append((coordinates[idx-1], coordinates[idx]))
+
+            all_street_segments.append(street_segments)
+        for idx1 in range(len(all_street_segments)):
+            for idx2 in range(idx1+1, len(all_street_segments)):
+                for segment_1 in all_street_segments[idx1]:
+                    for segment_2 in all_street_segments[idx2]:
+                        p = segment_1[0]
+                        q = segment_2[0]
+
+                        r = (segment_1[1][0] - segment_1[0][0],
+                             segment_1[1][1] - segment_1[0][1])
+
+                        s = (segment_2[1][0] - segment_2[0][0],
+                             segment_2[1][1] - segment_2[0][1])
+
+                        if Determinant(r, s) > 0:
+                            t = Determinant(
+                                (q[0]-p[0], q[1]-p[1]), s) / Determinant(r, s)
+                            u = Determinant(
+                                (p[0]-q[0], p[1]-q[1]), r) / Determinant(r, s)
+                            intersections.append(
+                                (p[0]+t*r[0], p[1]+t*r[1]))
+                        else:
+                            continue
+            print(intersections)
+            pdb.set_trace()
+
     def BuildGraph(self):
         vertices = {}
         edges = {}
+        paths = []
         """ for testing output
         vertices = {1:"(1,4)"}
         edges = [(1,4),(5,6)]
         Code goes here
         """
-        for street in self.streets_:
+        self.DetermineIntersections()
+        """
+        for street in self.streets_.keys():
             pass
+        """
         # Clear old graph
+
         self.vertices_.clear()
         self.edges_.clear()
 
         # Build new
-        self.vertices_ = vertices
-        self.edges_ = edges
+        self.vertices_.update(vertices)
+        self.edges_.update(edges)
 
     def OutputGraph(self):
 
