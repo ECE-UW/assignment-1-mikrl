@@ -40,44 +40,60 @@ class Graph:
             sys.stderr.write(error_codes[800]+'\n')
 
     def DetermineIntersections(self):
-        # pdb.set_trace()
+        # Look at all of this spaghetti!
         all_street_segments = []
         intersections = []
 
         def Determinant(v0, v1):
-            return(v0[0]*v1[1]-v0[1]*v1[0])
+            return float(v0[0]*v1[1]-v0[1]*v1[0])
 
         for street in self.streets_.keys():
             street_segments = []
             coordinates = self.streets_[street]
-            for idx in range(2, len(coordinates)):
+            for idx in range(1, len(coordinates)):
                 street_segments.append((coordinates[idx-1], coordinates[idx]))
 
             all_street_segments.append(street_segments)
+        # Horrible nested loops
         for idx1 in range(len(all_street_segments)):
             for idx2 in range(idx1+1, len(all_street_segments)):
                 for segment_1 in all_street_segments[idx1]:
                     for segment_2 in all_street_segments[idx2]:
-                        p = segment_1[0]
-                        q = segment_2[0]
+                        p_i, p_f = segment_1
+                        q_i, q_f = segment_2
 
-                        r = (segment_1[1][0] - segment_1[0][0],
-                             segment_1[1][1] - segment_1[0][1])
+                        r = (p_f[0]-p_i[0], p_f[1]-p_i[1])
+                        s = (q_f[0]-q_i[0], q_f[1]-q_i[1])
+                        print("Pi:%s\tQi:%s\tPf:%s\tQf%s" %
+                              (str(p_i), str(q_i), str(p_f), str(q_f)))
 
-                        s = (segment_2[1][0] - segment_2[0][0],
-                             segment_2[1][1] - segment_2[0][1])
-
-                        if Determinant(r, s) > 0:
+                        # print(str(p)+'\t'+str(r)+'\n'+str(q)+'\t'+str(s)+'\n')
+                        if abs(Determinant(r, s)) > 1e-6:
                             t = Determinant(
-                                (q[0]-p[0], q[1]-p[1]), s) / Determinant(r, s)
+                                (q_i[0]-p_i[0], q_i[1]-p_i[1]), s) / Determinant(r, s)
                             u = Determinant(
-                                (p[0]-q[0], p[1]-q[1]), r) / Determinant(r, s)
-                            intersections.append(
-                                (p[0]+t*r[0], p[1]+t*r[1]))
+                                (q_i[0]-p_i[0], q_i[1]-p_i[1]), r) / Determinant(r, s)
+                            print("D:%d\tT:%s\tU:%s" %
+                                  (Determinant(r, s), str(t), str(u)))
+                            if (0 <= t <= 1) and (0 <= u <= 1):
+                                p_plus_tr = (p_i[0]+t*r[0], p_i[1]+t*r[1])
+                                q_plus_us = (q_i[0]+u*s[0], q_i[1]+u*s[1])
+                                print("Pi:%s\tQi:%s\tPf:%s\tQf:%s\tP+tR=%s\tQ+uS=%s" %
+                                      (str(p_i), str(q_i), str(p_f), str(q_f), str(p_plus_tr), str(q_plus_us)))
+                                intersections.append(
+                                    (p_i[0]+t*r[0], p_i[1]+t*r[1]))
                         else:
                             continue
-            print(intersections)
-            pdb.set_trace()
+        for idx1 in range(len(intersections)):
+            for idx2 in range(idx1+1, len(intersections)):
+                if intersections[idx1] is None or intersections[idx2] is None:
+                    continue
+                elif abs(intersections[idx1][0]-intersections[idx2][0]) < 1e-3 and abs(intersections[idx1][1]-intersections[idx2][1]) < 1e-3:
+                    intersections[idx1] = None
+
+        intersections = [i for i in intersections if i is not None]
+        print(intersections)
+        pdb.set_trace()
 
     def BuildGraph(self):
         vertices = {}
@@ -160,13 +176,13 @@ def ParseInput(line):
     """
 
     add_change_parser = re.compile(
-        r"(([ ]*(a|c)[ ]+)(\"[a-z A-Z]+\"[ ]+)((\([ ]*[0-9]+[ ]*\,[ ]*[0-9]+[ ]*\)[ ]*)+))$")
+        r"(([ ]*(a|c)[ ]+)(\"[a-z A-Z]+\"[ ]+)((\([ ]*[\-]*[0-9]+[ ]*\,[ ]*[\-]*[0-9]+[ ]*\)[ ]*)+))$")
     remove_parser = re.compile(r"^([ ]*r)([ ]+\"[a-z A-Z]+\")$")
     graph_parser = re.compile(r"^[ ]*g[ ]*$")
 
     command_parser = re.compile(r"(^[ ]*(a|c|g|r)[ ]*)")
     arg_parser = re.compile(
-        r"([ ]+[\"a-zA-Z]+[ ]*[a-zA-Z]*\"[ ]+(\([ ]*[0-9]+[ ]*[\,][ ]*[0-9]+[ ]*\)[ ]*)+)|([ ]+\"[a-zA-Z]+\"$)")
+        r"([ ]+[\"a-zA-Z]+[ ]*[a-zA-Z]*\"[ ]+(\([ ]*[\-]*[0-9]+[ ]*[\,][ ]*[\-]*[0-9]+[ ]*\)[ ]*)+)|([ ]+\"[a-zA-Z]+\"$)")
     street_name_parser = re.compile(r"([ ]*\")([a-z A-Z]+)(\"[ ]*)")
     vertex_parser = re.compile(r"\([ ]*[\-]*[0-9]+[ ]*\,[ ]*[\-]*[0-9]+[ ]*\)")
 
@@ -223,7 +239,7 @@ def ParseInput(line):
         if vertices:
             vertices = vertices.replace(" ", "")
             vertices = [(int(a.split(',')[0]), int(a.split(',')[1]))
-                        for a in re.findall(r"[0-9]+,[0-9]+", vertices)]
+                        for a in re.findall(r"[\-]*[0-9]+,[\-]*[0-9]+", vertices)]
         command_sequence = [command, street_name,
                             vertices]  # build command sequence
         # put command sequence in output field
