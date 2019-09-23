@@ -72,7 +72,7 @@ def main():
         else:
             sys.stderr.write(error_codes[02]+'\n')
 
-    print '[*]Exiting graph generator'
+    # print '[*]Exiting graph generator'
     # return exit code 0 on successful termination
     sys.exit(0)
 

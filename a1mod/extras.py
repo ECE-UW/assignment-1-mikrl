@@ -15,7 +15,6 @@ class Graph:
                 sys.stderr.write(error_codes[610]+'\n')
             else:
                 self.streets_.update({street_name: vertices})
-            print("Add street function")
         except:
             sys.stderr.write(error_codes[600]+'/n')
 
@@ -25,7 +24,6 @@ class Graph:
                 self.streets_.update({street_name: vertices})
             else:
                 sys.stderr.write(error_codes[620]+'\n')
-            print("Change street function")
         except:
             sys.stderr.write(error_codes[700]+'\n')
 
@@ -63,47 +61,40 @@ class Graph:
 
                         r = (p_f[0]-p_i[0], p_f[1]-p_i[1])
                         s = (q_f[0]-q_i[0], q_f[1]-q_i[1])
-                        print("Pi:%s\tQi:%s\tPf:%s\tQf%s" %
-                              (str(p_i), str(q_i), str(p_f), str(q_f)))
 
-                        # print(str(p)+'\t'+str(r)+'\n'+str(q)+'\t'+str(s)+'\n')
                         if abs(Determinant(r, s)) > 1e-6:
                             t = Determinant(
                                 (q_i[0]-p_i[0], q_i[1]-p_i[1]), s) / Determinant(r, s)
                             u = Determinant(
                                 (q_i[0]-p_i[0], q_i[1]-p_i[1]), r) / Determinant(r, s)
-                            print("D:%d\tT:%s\tU:%s" %
-                                  (Determinant(r, s), str(t), str(u)))
                             if (0 <= t <= 1) and (0 <= u <= 1):
-                                p_plus_tr = (p_i[0]+t*r[0], p_i[1]+t*r[1])
-                                q_plus_us = (q_i[0]+u*s[0], q_i[1]+u*s[1])
-                                print("Pi:%s\tQi:%s\tPf:%s\tQf:%s\tP+tR=%s\tQ+uS=%s" %
-                                      (str(p_i), str(q_i), str(p_f), str(q_f), str(p_plus_tr), str(q_plus_us)))
                                 intersections.append(
                                     (p_i[0]+t*r[0], p_i[1]+t*r[1]))
                         else:
                             continue
+
         for idx1 in range(len(intersections)):
             for idx2 in range(idx1+1, len(intersections)):
                 if intersections[idx1] is None or intersections[idx2] is None:
                     continue
-                elif abs(intersections[idx1][0]-intersections[idx2][0]) < 1e-3 and abs(intersections[idx1][1]-intersections[idx2][1]) < 1e-3:
+                elif abs(intersections[idx1][0]-intersections[idx2][0]) < 1e-4 and abs(intersections[idx1][1]-intersections[idx2][1]) < 1e-4:
                     intersections[idx1] = None
 
-        intersections = [i for i in intersections if i is not None]
-        print(intersections)
-        pdb.set_trace()
+        self.intersections_ = [i for i in intersections if i is not None]
+
+    def DetermineVertices(self):
+        pass
+
+    def DetermineEdges(self):
+        pass
 
     def BuildGraph(self):
         vertices = {}
         edges = {}
-        paths = []
-        """ for testing output
-        vertices = {1:"(1,4)"}
-        edges = [(1,4),(5,6)]
-        Code goes here
-        """
+
         self.DetermineIntersections()
+        vertices = DetermineVertices()
+        edges = DetermineEdges()
         """
         for street in self.streets_.keys():
             pass
@@ -245,5 +236,4 @@ def ParseInput(line):
         parsed_output['output'] = command_sequence
 
     # return the command sequence (set or not) and a success/error code
-    # pdb.set_trace()
     return parsed_output
