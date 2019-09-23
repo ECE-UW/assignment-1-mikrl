@@ -46,7 +46,11 @@ class Graph:
         vertices = {}
         edges = {}
 
-        """
+        """ for testing output
+        vertices = {1:"(1,4)"}
+        edges = [(1,4),(5,6)]
+
+
         Code goes here
         """
         
@@ -54,15 +58,28 @@ class Graph:
         self.vertices_.clear()
         self.edges_.clear()
 
+        
         # Build new
         self.vertices_ = vertices
         self.edges_ = edges
+
+        
         
     def OutputGraph(self):
         
         self.BuildGraph()
-        print("[*] Temp Output \n")
-        output_string = "V = {\n\t"
+        
+        output_string = "V = {\n"
+        for vertex in self.vertices_.keys():
+            output_string+="    %d:   %s\n" % (vertex, str(self.vertices_[vertex].replace(" ", "")))
+        output_string+="}\n"
+
+        output_string+="E = {\n"
+        for edge in self.edges_:
+            output_string +="    <%d,%d>,\n" % edge
+        output_string = output_string[:-2]+"\n}"
+
+        print(output_string)
         
     
 
@@ -144,6 +161,7 @@ def ParseInput(line):
                 pdb.set_trace()
                 command = command_parser.match(line).group().strip()
                 arguments = arg_parser.findall(line)
+                # something dodgy going on here
                 street_name = re.findall(r'\"[a-z A-Z]+\"', ''.join(arguments)) #split args into street name
                 vertices = vertex_parser.findall(''.join(arguments)) #and vertices
                 # handle the erroneous cases by setting an error code using our handler function
@@ -156,6 +174,13 @@ def ParseInput(line):
             
     if parsed_output['error']==0: #if we got here without any problems
         #prepare street name and vertices for return
+
+        #prepare output data in the right format
+        if street_name:
+            street_name=street_name.lower()
+        if vertices:
+            vertices = vertices.replace(" ","")
+            vertices = [(int(a.split(',')[0]), int(a.split(',')[1])) for a in re.findall(r"[0-9]+,[0-9]+", vertices)]
         command_sequence = [command, street_name, vertices] #build command sequence
         parsed_output['output'] = command_sequence    #put command sequence in output field
  
