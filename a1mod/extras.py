@@ -3,39 +3,69 @@ import pdb
 import sys
 
 
-class Graph:
+def error_codes(code):
+    error_codes = {01: "Error: Ruh roh!",
+                   02: "Error: Invalid command",
+                   500: "Error: Exception raised",
+                   510: "Error: Command not found",
+                   511: "Error: Too many street names for this argument",
+                   521: "Error: Incorrect input format. (a|c) \"<street name>\" (x1,y1) (x2,y2) (xi,yi)",
+                   522: "Error: Please enter a street name for (a|c)",
+                   523: "Error: Please enter vertices for (a|c)",
+                   531: "Error: No street name for (r). (r) \"<street name>\"",
+                   532: "Error: Unnecessary vertices for (r). (r) \"<street name>\"",
+                   540: "Error: Too many arguments for g. (g)",
+                   600: "Error: Uncaught exception in Graph.AddStreet",
+                   610: "Error: Street already in vertices. Use c to change or r to remove",
+                   620: "Error: Street not in vertices. Please use a to add a street",
+                   630: "Error: Street not in vertices. Cannot remove",
+                   700: "Error: Uncaught exception in Graph.ChangeStreet",
+                   800: "Error: Uncaught exception in Graph.RemoveStreet"}
+    try:
+        error = error_codes[code]
 
+    except:
+        error = "Error. Exception raised in error_codes() due to unknown error."
+
+    return error
+
+
+class Graph:
+    vertex_id_ = 1
+    intersection_id_ = 1
     streets_ = {}
     edges_ = {}
     vertices_ = {}
     intersections_ = {}
+    built_ = False  # boolean to tell us if graph has been built yet
 
     def AddStreet(self, street_name, vertices):
         try:
             if street_name in self.streets_.keys():  # if street exists, do not add
-                sys.stderr.write(error_codes[610]+'\n')
+                sys.stderr.write(error_codes(610)+'\n')
             else:
                 self.streets_.update({street_name: vertices})
+                self.built_ = False  # Need to rebuild if we add street
         except:
-            sys.stderr.write(error_codes[600]+'/n')
+            sys.stderr.write(error_codes(600)+'/n')
 
     def ChangeStreet(self, street_name, vertices):
         try:
             if street_name in self.streets_.keys():  # check if street actually exists
                 self.streets_.update({street_name: vertices})
             else:
-                sys.stderr.write(error_codes[620]+'\n')
+                sys.stderr.write(error_codes(620)+'\n')
         except:
-            sys.stderr.write(error_codes[700]+'\n')
+            sys.stderr.write(error_codes(700)+'\n')
 
     def RemoveStreet(self, street_name):
         try:
             if street_name in self.streets_.keys():
                 self.streets_.pop(street_name, None)
             else:
-                sys.stderr.write(error_codes[630]+'\n')
+                sys.stderr.write(error_codes(630)+'\n')
         except:
-            sys.stderr.write(error_codes[800]+'\n')
+            sys.stderr.write(error_codes(800)+'\n')
 
     def DetermineIntersections(self):
         # Look at all of this spaghetti!
@@ -92,42 +122,58 @@ class Graph:
         # end Outer street segment For
         return intersecting_segments
 
-    def DetermineVertices(self):
-        pass
+    def DetermineVertices(self, intersecting_segments):
+        unique_vertices = {}
+        # pdb.set_trace()
+        for segments in intersecting_segments:
+            # assign an ID to each vertex
+            for i in range(2):
+                for j in range(2):  # first two line segments
+                    # If we dont find the points in our labelled list
+                    if segments[i][j] not in unique_vertices.keys():
+                        # add them and increment the vertex ID
+                        unique_vertices.update(
+                            {segments[i][j]: "V"+str(self.vertex_id_)})
+                        self.vertex_id_ += 1
 
-    def DetermineEdges(self):
-        pass
+            if segments[2] not in unique_vertices.keys():
+                unique_vertices.update(
+                    {segments[2]: "I"+str(self.intersection_id_)})
+                self.intersection_id_ += 1
+        return unique_vertices
+
+    def DetermineEdges(self, intersecting_segments):
+        edges = []
+        # pdb.set_trace()
+        for segments in intersecting_segments:
+            for i in range(2):
+
+                edges.append((self.vertices_[
+                             segments[i][0]], self.vertices_[segments[2]]))
+                edges.append((self.vertices_[segments[2]],
+                              self.vertices_[segments[i][1]]))
+        return set(edges)
 
     def BuildGraph(self):
         vertices = {}
         edges = {}
 
         intersecting_segments = self.DetermineIntersections()
-        vertex_id = 1
-        # now we have p1, p2, intersect
-        # simply assign each (unique)  p1, p2, intersect an ID using dict and build edges from that
-        pdb.set_trace()
-        """
-        for intersecting_segment in intersecting_segments:
-            if intersecting_segment[0][0] not in vertices:
-                vertices.update(str(i): intersecting_segment[0])
-                intersecting_segment[0]
-                i += 1
-        """
-        vertices = DetermineVertices()
-        edges = DetermineEdges()
-        """
-        for street in self.streets_.keys():
-            pass
-        """
-        # Clear old graph
 
+        # now we have p1->p2, q1->q2, intersect
+        # simply assign each (unique)  p, q, intersect an ID using dict and build edges from that
+        # pdb.set_trace()
+        # maybe check if intersections is not empty?
+
+        vertices.update(self.DetermineVertices(intersecting_segments))
         self.vertices_.clear()
-        self.edges_.clear()
-
-        # Build new
         self.vertices_.update(vertices)
+
+        edges = self.DetermineEdges(intersecting_segments)
+        pdb.set_trace()
+        self.edges_.clear()
         self.edges_.update(edges)
+        self.built_ = True
 
     def OutputGraph(self):
 

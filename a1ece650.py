@@ -16,24 +16,6 @@ def main():
                     'g': StreetGraph.OutputGraph}
 
     # Dict to hold possible errors
-    global error_codes
-    error_codes = {01: "Error: Ruh roh!",
-                   02: "Error: Invalid command",
-                   500: "Error: Exception raised",
-                   510: "Error: Command not found",
-                   511: "Error: Too many street names for this argument",
-                   521: "Error: Incorrect input format. (a|c) \"<street name>\" (x1,y1) (x2,y2) (xi,yi)",
-                   522: "Error: Please enter a street name for (a|c)",
-                   523: "Error: Please enter vertices for (a|c)",
-                   531: "Error: No street name for (r). (r) \"<street name>\"",
-                   532: "Error: Unnecessary vertices for (r). (r) \"<street name>\"",
-                   540: "Error: Too many arguments for g. (g)",
-                   600: "Error: Uncaught exception in Graph.AddStreet",
-                   610: "Error: Street already in vertices. Use c to change or r to remove",
-                   620: "Error: Street not in vertices. Please use a to add a street",
-                   630: "Error: Street not in vertices. Cannot remove",
-                   700: "Error: Uncaught exception in Graph.ChangeStreet",
-                   800: "Error: Uncaught exception in Graph.RemoveStreet"}
 
     # wait for input
     while True:
@@ -56,7 +38,7 @@ def main():
         # Figure out if an error occurred within the function
         # If so, skip back to input
         if return_value is not 0:
-            sys.stderr.write(error_codes[return_value]+'\n')
+            sys.stderr.write(a1mod.extras.error_codes(return_value)+'\n')
             continue
 
         elif command in ['a', 'c']:
@@ -67,7 +49,7 @@ def main():
             menu_options[command]()
 
         else:
-            sys.stderr.write(error_codes[02]+'\n')
+            sys.stderr.write(a1mod.extras.error_codes(02)+'\n')
 
     # print '[*]Exiting graph generator'
     # return exit code 0 on successful termination
