@@ -1,5 +1,6 @@
 import re
 import pdb
+import sys
 
 
 class Graph:
@@ -39,16 +40,21 @@ class Graph:
     def DetermineIntersections(self):
         # Look at all of this spaghetti!
         all_street_segments = []
+        intersecting_segments = []
         intersections = []
-        endpoints = []
+        streets = []
+        endpoint_names = []
 
         # Define determinant to determine intersections
+
         def Determinant(v0, v1):
             return float(v0[0]*v1[1]-v0[1]*v1[0])
 
         # Build list of paths
         for street in self.streets_.keys():
+            streets.append(street)
             street_segments = []
+
             coordinates = self.streets_[street]
             for idx in range(1, len(coordinates)):
                 street_segments.append((coordinates[idx-1], coordinates[idx]))
@@ -75,20 +81,16 @@ class Graph:
                             u = Determinant(
                                 (q_i[0]-p_i[0], q_i[1]-p_i[1]), r) / Determinant(r, s)
                             if (0 <= t <= 1) and (0 <= u <= 1):
-                                # Put endpoints into endpoints[] and convert to set
-                                intersections.append(
-                                    (p_i[0]+t*r[0], p_i[1]+t*r[1]))
+                                intersection = (p_i[0]+t*r[0], p_i[1]+t*r[1])
+                                intersecting_segments.append(
+                                    (segment_1, segment_2, intersection))
                         else:
                             continue
-
-        for idx1 in range(len(intersections)):
-            for idx2 in range(idx1+1, len(intersections)):
-                if intersections[idx1] is None or intersections[idx2] is None:
-                    continue
-                elif abs(intersections[idx1][0]-intersections[idx2][0]) < 1e-4 and abs(intersections[idx1][1]-intersections[idx2][1]) < 1e-4:
-                    intersections[idx1] = None
-
-        self.intersections_ = [i for i in intersections if i is not None]
+                    # end Inner segment for
+                # end Outer segment for
+            # end Inner street segment For
+        # end Outer street segment For
+        return intersecting_segments
 
     def DetermineVertices(self):
         pass
@@ -100,7 +102,18 @@ class Graph:
         vertices = {}
         edges = {}
 
-        self.DetermineIntersections()
+        intersecting_segments = self.DetermineIntersections()
+        vertex_id = 1
+        # now we have p1, p2, intersect
+        # simply assign each (unique)  p1, p2, intersect an ID using dict and build edges from that
+        pdb.set_trace()
+        """
+        for intersecting_segment in intersecting_segments:
+            if intersecting_segment[0][0] not in vertices:
+                vertices.update(str(i): intersecting_segment[0])
+                intersecting_segment[0]
+                i += 1
+        """
         vertices = DetermineVertices()
         edges = DetermineEdges()
         """
