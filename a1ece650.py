@@ -3,9 +3,6 @@ import a1mod.extras
 
 
 def main():
-    # YOUR MAIN CODE GOES HERE
-
-    # sample code to read from stdin.
     # make sure to remove all spurious print statements as required
     # by the assignment
 
@@ -62,7 +59,7 @@ def main():
             sys.stderr.write(error_codes[return_value]+'\n')
             continue
 
-        if command in ['a', 'c']:
+        elif command in ['a', 'c']:
             menu_options[command](street_name, vertices)
         elif command is 'r':
             menu_options[command](street_name)

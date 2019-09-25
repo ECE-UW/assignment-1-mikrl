@@ -40,10 +40,13 @@ class Graph:
         # Look at all of this spaghetti!
         all_street_segments = []
         intersections = []
+        endpoints = []
 
+        # Define determinant to determine intersections
         def Determinant(v0, v1):
             return float(v0[0]*v1[1]-v0[1]*v1[0])
 
+        # Build list of paths
         for street in self.streets_.keys():
             street_segments = []
             coordinates = self.streets_[street]
@@ -51,12 +54,16 @@ class Graph:
                 street_segments.append((coordinates[idx-1], coordinates[idx]))
 
             all_street_segments.append(street_segments)
+
         # Horrible nested loops
-        for idx1 in range(len(all_street_segments)):
+        for idx1 in range(len(all_street_segments)):  # Compare street segments
+            # With all other street segments
             for idx2 in range(idx1+1, len(all_street_segments)):
+                # Compare all segments in segment1
                 for segment_1 in all_street_segments[idx1]:
+                    # With segment 2
                     for segment_2 in all_street_segments[idx2]:
-                        p_i, p_f = segment_1
+                        p_i, p_f = segment_1  # generate p, q for p+tr = q + us equation
                         q_i, q_f = segment_2
 
                         r = (p_f[0]-p_i[0], p_f[1]-p_i[1])
@@ -68,6 +75,7 @@ class Graph:
                             u = Determinant(
                                 (q_i[0]-p_i[0], q_i[1]-p_i[1]), r) / Determinant(r, s)
                             if (0 <= t <= 1) and (0 <= u <= 1):
+                                # Put endpoints into endpoints[] and convert to set
                                 intersections.append(
                                     (p_i[0]+t*r[0], p_i[1]+t*r[1]))
                         else:
