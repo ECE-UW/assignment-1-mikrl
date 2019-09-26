@@ -51,8 +51,8 @@ def main():
         else:
             sys.stderr.write(a1mod.extras.error_codes(02)+'\n')
 
-    # print '[*]Exiting graph generator'
     # return exit code 0 on successful termination
+    del(StreetGraph)
     sys.exit(0)
 
 

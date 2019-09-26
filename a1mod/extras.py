@@ -20,7 +20,8 @@ def error_codes(code):
                    620: "Error: Street not in vertices. Please use a to add a street",
                    630: "Error: Street not in vertices. Cannot remove",
                    700: "Error: Uncaught exception in Graph.ChangeStreet",
-                   800: "Error: Uncaught exception in Graph.RemoveStreet"}
+                   800: "Error: Uncaught exception in Graph.RemoveStreet",
+                   900: "Error: Uncaught exception in Graph.BuildGraph"}
     try:
         error = error_codes[code]
 
@@ -31,12 +32,9 @@ def error_codes(code):
 
 
 class Graph:
-    vertex_id_ = 1
-    intersection_id_ = 1
     streets_ = {}
     edges_ = {}
     vertices_ = {}
-    intersections_ = {}
 
     def AddStreet(self, street_name, vertices):
         try:
@@ -109,22 +107,44 @@ class Graph:
                             u = Determinant(
                                 (q_i[0]-p_i[0], q_i[1]-p_i[1]), r) / Determinant(r, s)
                             if (0 <= t <= 1) and (0 <= u <= 1):
-                                intersection = (p_i[0]+t*r[0], p_i[1]+t*r[1])
+                                intersection = [p_i[0]+t*r[0], p_i[1]+t*r[1]]
                                 intersecting_segments.append(
-                                    (segment_1, segment_2, intersection))
+                                    [segment_1, segment_2, intersection])
                         else:
                             continue
                     # end Inner segment for
                 # end Outer segment for
             # end Inner street segment For
         # end Outer street segment For
+
         return intersecting_segments
 
     def DetermineVertices(self, intersecting_segments):
+        intersection_id = vertex_id = 1
         unique_vertices = {}
-        # pdb.set_trace()
+
+        # this loop takes care of any intersections which are the same to within 1e-4 (each coord)
+        for idx1 in range(len(intersecting_segments)):
+            for idx2 in range(idx1, len(intersecting_segments)):
+                segments = intersecting_segments[idx1]
+                segments2 = intersecting_segments[idx2]
+
+                if (abs(segments[2][0]-segments2[2][0]) < 1e-4 and abs(segments[2][1]-segments2[2][1]) < 1e-4):
+                    # pdb.set_trace()
+                    intersecting_segments[idx2][2] = intersecting_segments[idx1][2]
+            # end inner for
+            intersecting_segments[idx1][2] = tuple(
+                intersecting_segments[idx1][2])
+        # end outer for
+        # want to assign all intersections first
         for segments in intersecting_segments:
             # assign an ID to each vertex
+            if segments[2] not in unique_vertices.keys():  # or segments[2]:
+                unique_vertices.update(
+                    {segments[2]: "I"+str(intersection_id)})
+                intersection_id += 1
+
+        for segments in intersecting_segments:
             for i in range(2):
                 for j in range(2):  # first two line segments
                     # If we dont find the points in our labelled list
@@ -132,61 +152,71 @@ class Graph:
                     if segments[i][j] not in unique_vertices.keys():
                         # add them and increment the vertex ID
                         unique_vertices.update(
-                            {segments[i][j]: "V"+str(self.vertex_id_)})
-                        self.vertex_id_ += 1
+                            {segments[i][j]: "V"+str(vertex_id)})
+                        vertex_id += 1
 
-            if segments[2] not in unique_vertices.keys():
-                unique_vertices.update(
-                    {segments[2]: "I"+str(self.intersection_id_)})
-                self.intersection_id_ += 1
         return unique_vertices
 
-    def DetermineEdges(self, intersecting_segments):
+    def DetermineEdges(self):
         edges = []
-        # pdb.set_trace()
-        # treat the case where they intersect at the endpoints, ie you get an edge V1-V1: not good!
-        for segments in intersecting_segments:
-            for i in range(2):
+        intersections = [item[0]
+                         for item in self.vertices_.items() if item[1][0] is 'I']
+        streets_intersections = []
+        for coords in self.streets_.values():
+            coords_intersections = []
+            for idx in range(1, len(coords)):
+                p_i, p_f = coords[idx-1], coords[idx]
+                # distances of intersect points from line
+                d2_list = [(r, ((p_f[1]-p_i[1])*r[0] - (p_f[0]-p_i[0])*r[1] + p_f[0]*p_i[1] - p_f[1]*p_i[0])
+                            ** 2 / ((p_f[1]-p_i[1])**2 + (p_f[0] - p_i[0])**2)) for r in intersections]
+                insert_intersects = sorted(
+                    [intersect[0] for intersect in d2_list if intersect[1] < 1e-8], key=lambda x: x[0]**2 + x[1]**2)
+                coords_intersections += [p_i] + insert_intersects
+            coords_intersections += [p_f]
+            streets_intersections.append(coords_intersections)
+        edge_list = [[self.vertices_[vertex] for vertex in street if vertex in self.vertices_.keys()]
+                     for street in streets_intersections]
+        for edge in edge_list:
+            for i in range(1, len(edge)):
+                if (edge[i-1][0] is 'I' or edge[i][0] is 'I') and edge[i-1] != edge[i]:
+                    edges.append((edge[i-1], edge[i]))
 
-                edges.append((self.vertices_[
-                             segments[i][0]], self.vertices_[segments[2]]))
-                edges.append((self.vertices_[segments[2]],
-                              self.vertices_[segments[i][1]]))
         return set(edges)
 
     def BuildGraph(self):
-        vertices = {}
-        edges = {}
+        try:
+            vertices = {}
+            edges = {}
 
-        intersecting_segments = self.DetermineIntersections()
+            intersecting_segments = self.DetermineIntersections()
 
-        # maybe check if intersections is not empty?
+            vertices.update(self.DetermineVertices(intersecting_segments))
+            self.vertices_.clear()  # clear prev vertices
+            self.vertices_.update(vertices)
 
-        # get vertices and intersection points
-        vertices.update(self.DetermineVertices(intersecting_segments))
-        self.vertices_.clear()  # clear prev vertices
-        self.vertices_.update(vertices)
+            edges = self.DetermineEdges()
 
-        # get edge relations between verties
-        pdb.set_trace()
-        edges = self.DetermineEdges(intersecting_segments)
-        # pdb.set_trace()
-        self.edges_.clear()
-        self.edges_.update(edges)
+            self.edges_.clear()
+            self.edges_ = edges
+
+        except:
+            sys.stderr.write(error_codes(900)+'/n')
 
     def OutputGraph(self):
 
         self.BuildGraph()
-        # pdb.set_trace()
         output_string = "V = {\n"
         for vertex in self.vertices_.keys():
-            output_string += "    %s:   %s\n" % (self.vertices_[vertex],
-                                                 str(vertex).replace(" ", ""))
+            if type(vertex[0]) is float or type(vertex[1]) is float:
+                output_string += "    %s:   (%.2f,%.2f)\n" % (self.vertices_[vertex],
+                                                              vertex[0], vertex[1])
+            else:
+                output_string += "    %s:   (%d,%d)\n" % (self.vertices_[vertex],
+                                                          vertex[0], vertex[1])
         output_string += "}\n"
         output_string += "E = {\n"
-        pdb.set_trace()
         for edge in self.edges_:
-            output_string += "    <%d,%d>,\n" % edge
+            output_string += "    <%s,%s>,\n" % (edge[0], edge[1])
         output_string = output_string[:-2]+"\n}"
         print(output_string)
 
