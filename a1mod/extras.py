@@ -1,14 +1,15 @@
 import re
-import pdb
 import sys
 
 
 def error_codes(code):
     error_codes = {01: "Error: Ruh roh!",
                    02: "Error: Invalid command",
+                   400: "Error: Unknown or unhandled error",
                    500: "Error: Exception raised",
                    510: "Error: Command not found",
                    511: "Error: Too many street names for this argument",
+                   512: "Error: Too few vertices. Need at least two",
                    521: "Error: Incorrect input format. (a|c) \"<street name>\" (x1,y1) (x2,y2) (xi,yi)",
                    522: "Error: Please enter a street name for (a|c)",
                    523: "Error: Please enter vertices for (a|c)",
@@ -130,7 +131,6 @@ class Graph:
                 segments2 = intersecting_segments[idx2]
 
                 if (abs(segments[2][0]-segments2[2][0]) < 1e-4 and abs(segments[2][1]-segments2[2][1]) < 1e-4):
-                    # pdb.set_trace()
                     intersecting_segments[idx2][2] = intersecting_segments[idx1][2]
             # end inner for
             intersecting_segments[idx1][2] = tuple(
@@ -164,6 +164,8 @@ class Graph:
         streets_intersections = []
         for coords in self.streets_.values():
             coords_intersections = []
+            if len(coords) == 1:
+                continue
             for idx in range(1, len(coords)):
                 p_i, p_f = coords[idx-1], coords[idx]
                 # distances of intersect points from line
@@ -189,13 +191,11 @@ class Graph:
             edges = {}
 
             intersecting_segments = self.DetermineIntersections()
-
             vertices.update(self.DetermineVertices(intersecting_segments))
             self.vertices_.clear()  # clear prev vertices
             self.vertices_.update(vertices)
 
             edges = self.DetermineEdges()
-
             self.edges_.clear()
             self.edges_ = edges
 
@@ -223,7 +223,7 @@ class Graph:
 
 def errorHandler(command, arguments, street_name, vertices):
 
-    error_code = 500  # uncaught error. bad
+    error_code = 400  # uncaught error. bad
 
     if (command is 'a' or command is 'c'):  # input errors for a|c
         if not street_name and not vertices:  # if we don't find a street name or vertex set
@@ -234,6 +234,8 @@ def errorHandler(command, arguments, street_name, vertices):
             error_code = 523  # error 523: no vertices
         elif len(street_name) > 1:
             error_code = 511  # error 511: too many street names
+        elif len(vertices) < 2:  # error 512: too few vertices
+            error_code = 512
     elif command is 'r':  # input errors for r
         if not street_name:
             error_code = 531  # error 531: no street name
@@ -263,7 +265,7 @@ def ParseInput(line):
     """
 
     add_change_parser = re.compile(
-        r"(([ ]*(a|c)[ ]+)(\"[a-z A-Z]+\"[ ]+)((\([ ]*[\-]*[0-9]+[ ]*\,[ ]*[\-]*[0-9]+[ ]*\)[ ]*)+))$")
+        r"(([ ]*(a|c)[ ]+)(\"[a-z A-Z]+\"[ ]+)((\([ ]*[\-]*[0-9]+[ ]*\,[ ]*[\-]*[0-9]+[ ]*\)[ ]*){2,}))$")
     remove_parser = re.compile(r"^([ ]*r)([ ]+\"[a-z A-Z]+\")$")
     graph_parser = re.compile(r"^[ ]*g[ ]*$")
 
@@ -296,14 +298,16 @@ def ParseInput(line):
     else:
         try:
             if command_parser.match(line) is not None:
-                pdb.set_trace()
+                command = arguments = street_name = vertices = ""
                 command = command_parser.match(line).group().strip()
-                arguments = arg_parser.findall(line)
                 # something dodgy going on here
                 # split args into street name
-                street_name = re.findall(r'\"[a-z A-Z]+\"', ''.join(arguments))
-                vertices = vertex_parser.findall(
-                    ''.join(arguments))  # and vertices
+                if arg_parser.search(line) is not None:
+                    arguments = arg_parser.search(line).group()
+                    street_name = re.findall(
+                        r'\"[a-z A-Z]+\"', ''.join(arguments))
+                    vertices = vertex_parser.findall(
+                        ''.join(arguments))  # and vertices
                 # handle the erroneous cases by setting an error code using our handler function
                 parsed_output['error'] = errorHandler(
                     command, arguments, street_name, vertices)

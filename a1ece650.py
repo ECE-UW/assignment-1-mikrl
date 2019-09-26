@@ -3,8 +3,6 @@ import a1mod.extras
 
 
 def main():
-    # make sure to remove all spurious print statements as required
-    # by the assignment
 
     # Graph object
     StreetGraph = a1mod.extras.Graph()
@@ -14,8 +12,6 @@ def main():
                     'c': StreetGraph.ChangeStreet,
                     'r': StreetGraph.RemoveStreet,
                     'g': StreetGraph.OutputGraph}
-
-    # Dict to hold possible errors
 
     # wait for input
     while True:
