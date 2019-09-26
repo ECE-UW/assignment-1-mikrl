@@ -37,7 +37,6 @@ class Graph:
     edges_ = {}
     vertices_ = {}
     intersections_ = {}
-    built_ = False  # boolean to tell us if graph has been built yet
 
     def AddStreet(self, street_name, vertices):
         try:
@@ -45,7 +44,6 @@ class Graph:
                 sys.stderr.write(error_codes(610)+'\n')
             else:
                 self.streets_.update({street_name: vertices})
-                self.built_ = False  # Need to rebuild if we add street
         except:
             sys.stderr.write(error_codes(600)+'/n')
 
@@ -130,6 +128,7 @@ class Graph:
             for i in range(2):
                 for j in range(2):  # first two line segments
                     # If we dont find the points in our labelled list
+                    # Consider the case where segment[i][j] == segment[2] and dont add it!
                     if segments[i][j] not in unique_vertices.keys():
                         # add them and increment the vertex ID
                         unique_vertices.update(
@@ -145,6 +144,7 @@ class Graph:
     def DetermineEdges(self, intersecting_segments):
         edges = []
         # pdb.set_trace()
+        # treat the case where they intersect at the endpoints, ie you get an edge V1-V1: not good!
         for segments in intersecting_segments:
             for i in range(2):
 
@@ -160,31 +160,31 @@ class Graph:
 
         intersecting_segments = self.DetermineIntersections()
 
-        # now we have p1->p2, q1->q2, intersect
-        # simply assign each (unique)  p, q, intersect an ID using dict and build edges from that
-        # pdb.set_trace()
         # maybe check if intersections is not empty?
 
+        # get vertices and intersection points
         vertices.update(self.DetermineVertices(intersecting_segments))
-        self.vertices_.clear()
+        self.vertices_.clear()  # clear prev vertices
         self.vertices_.update(vertices)
 
-        edges = self.DetermineEdges(intersecting_segments)
+        # get edge relations between verties
         pdb.set_trace()
+        edges = self.DetermineEdges(intersecting_segments)
+        # pdb.set_trace()
         self.edges_.clear()
         self.edges_.update(edges)
-        self.built_ = True
 
     def OutputGraph(self):
 
         self.BuildGraph()
-
+        # pdb.set_trace()
         output_string = "V = {\n"
         for vertex in self.vertices_.keys():
-            output_string += "    %d:   %s\n" % (vertex,
-                                                 str(self.vertices_[vertex].replace(" ", "")))
+            output_string += "    %s:   %s\n" % (self.vertices_[vertex],
+                                                 str(vertex).replace(" ", ""))
         output_string += "}\n"
         output_string += "E = {\n"
+        pdb.set_trace()
         for edge in self.edges_:
             output_string += "    <%d,%d>,\n" % edge
         output_string = output_string[:-2]+"\n}"
@@ -217,7 +217,7 @@ def errorHandler(command, arguments, street_name, vertices):
 
 
 def ParseInput(line):
-    """ Generate the regexes to parse our input 
+    """ Generate the regexes to parse our input
 
     added parsers for each function to enforce input restrictions
 
@@ -246,7 +246,6 @@ def ParseInput(line):
     # initialize return dict with empty command and OK code
     parsed_output = {'output': [[], [], []], 'error': 0}
     command = street_name = vertices = None  # init our command structure
-    # pdb.set_trace()
     # If there is a match, save into command variable
     if (add_change_parser.match(line) or remove_parser.match(line) or graph_parser.match(line)):
         if add_change_parser.match(line):
@@ -263,8 +262,6 @@ def ParseInput(line):
 
         elif graph_parser.match(line):
             command = graph_parser.match(line).group(0).strip()
-
-        # pdb.set_trace()
 
     else:
         try:
